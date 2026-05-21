@@ -34,6 +34,7 @@ camera.lookAt(0, 0, -28);
 const clock = new THREE.Clock();
 const starfield = createStarfield(settings);
 const dustfield = createDustfield(settings);
+const farTwinkles = createFarTwinkleLayer(settings);
 const backdrop = createBackdrop(settings);
 
 let width = 1;
@@ -42,6 +43,7 @@ let lastFrame = 0;
 let renderedFrames = 0;
 
 scene.add(backdrop);
+scene.add(farTwinkles);
 scene.add(dustfield);
 scene.add(starfield);
 
@@ -87,6 +89,7 @@ function animate(timestamp = 0) {
 
   starfield.material.uniforms.uTime.value += delta * settings.speed;
   dustfield.material.uniforms.uTime.value += delta * settings.speed;
+  farTwinkles.material.uniforms.uTime.value += delta;
   backdrop.material.uniforms.uTime.value = time;
 
   if (renderPipeline) {
@@ -129,8 +132,10 @@ function resize() {
   const viewportScale = viewportPointScale(width, height);
   starfield.material.uniforms.uViewportScale.value = viewportScale;
   dustfield.material.uniforms.uViewportScale.value = viewportScale;
+  farTwinkles.material.uniforms.uViewportScale.value = viewportScale;
   starfield.material.uniforms.uAspect.value = camera.aspect;
   dustfield.material.uniforms.uAspect.value = camera.aspect;
+  farTwinkles.material.uniforms.uAspect.value = camera.aspect;
   backdrop.scale.set(camera.aspect > 1 ? camera.aspect * 46 : 46, camera.aspect > 1 ? 46 : 46 / camera.aspect, 1);
 }
 
@@ -204,7 +209,7 @@ function createStarfield(config) {
     rotations[i] = Math.random() * Math.PI * 2;
     spins[i] = (Math.random() > 0.5 ? 1 : -1) * lerp(0.18, 1.45, Math.random()) * config.starSpin;
     lifePhases[i] = Math.random();
-    lifeSpeeds[i] = lerp(0.22, 1.15, Math.random() ** 1.4) * config.fadeSpeed;
+    lifeSpeeds[i] = lerp(0.65, 1.75, Math.random() ** 1.25) * config.fadeSpeed;
     layers[i] = layerNorm;
   }
 
@@ -280,9 +285,9 @@ function createStarfield(config) {
         float nearGlow = smoothstep(uDepth, uNear, distanceToCamera);
         float farFade = smoothstep(uDepth, uDepth * 0.52, distanceToCamera);
         float motionBoost = mix(0.78, uStretch, nearGlow);
-        float lifePhase = fract(aLifePhase + uTime * aLifeSpeed * 0.08);
-        float appear = smoothstep(0.02, 0.14, lifePhase);
-        float vanish = 1.0 - smoothstep(0.5, 0.68, lifePhase);
+        float lifePhase = fract(aLifePhase + uTime * aLifeSpeed);
+        float appear = smoothstep(0.02, 0.1, lifePhase);
+        float vanish = 1.0 - smoothstep(0.42, 0.58, lifePhase);
         float lifePulse = 0.58 + 0.42 * sin(lifePhase * 6.28318530718);
         float layerFlicker = 0.84 + 0.16 * sin(uTime * (0.42 + aLayer * 0.58) + aPhase * 31.0);
 
@@ -450,6 +455,96 @@ function createDustfield(config) {
   return points;
 }
 
+function createFarTwinkleLayer(config) {
+  const count = Math.round(config.farStarCount * config.density);
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const sizes = new Float32Array(count);
+  const phases = new Float32Array(count);
+  const speeds = new Float32Array(count);
+
+  for (let i = 0; i < count; i += 1) {
+    const spreadX = config.tunnelWidth * 1.42;
+    const spreadY = config.tunnelWidth * 0.92;
+    const cool = Math.random();
+
+    positions[i * 3] = (Math.random() - 0.5) * spreadX * 2;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * spreadY * 2;
+    positions[i * 3 + 2] = -config.depth * lerp(0.72, 1.06, Math.random());
+
+    colors[i * 3] = lerp(0.68, 1.0, Math.random());
+    colors[i * 3 + 1] = lerp(0.76, 0.96, cool);
+    colors[i * 3 + 2] = lerp(0.92, 1.0, cool);
+    sizes[i] = lerp(0.55, 1.8, Math.random() ** 1.9) * config.starScale;
+    phases[i] = Math.random();
+    speeds[i] = lerp(1.5, 4.8, Math.random() ** 1.2) * config.farBlinkSpeed;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
+  geometry.setAttribute("aPhase", new THREE.BufferAttribute(phases, 1));
+  geometry.setAttribute("aSpeed", new THREE.BufferAttribute(speeds, 1));
+
+  const material = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexColors: true,
+    uniforms: {
+      uTime: { value: 0 },
+      uPixelRatio: { value: Math.min(config.pixelRatio, 3) },
+      uViewportScale: { value: 1 },
+      uAspect: { value: 1 },
+    },
+    vertexShader: `
+      attribute float aSize;
+      attribute float aPhase;
+      attribute float aSpeed;
+
+      uniform float uTime;
+      uniform float uPixelRatio;
+      uniform float uViewportScale;
+
+      varying vec3 vColor;
+      varying float vAlpha;
+
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        float perspective = 56.0 / max(1.0, -mvPosition.z);
+        float blinkPhase = fract(aPhase + uTime * aSpeed);
+        float blink = smoothstep(0.02, 0.08, blinkPhase) * (1.0 - smoothstep(0.18, 0.34, blinkPhase));
+        float shimmer = 0.42 + 0.58 * sin(uTime * (7.0 + aSpeed * 2.2) + aPhase * 91.0);
+
+        gl_Position = projectionMatrix * mvPosition;
+        gl_PointSize = aSize * perspective * uPixelRatio * uViewportScale * (0.88 + blink * 0.26);
+
+        vColor = color;
+        vAlpha = blink * (0.34 + shimmer * 0.22);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      varying float vAlpha;
+
+      void main() {
+        vec2 uv = gl_PointCoord - 0.5;
+        float r = length(uv);
+        float pin = exp(-r * r * 130.0);
+        float tinyCross = exp(-abs(uv.x) * 85.0) * smoothstep(0.45, 0.04, abs(uv.y));
+        tinyCross += exp(-abs(uv.y) * 85.0) * smoothstep(0.45, 0.04, abs(uv.x));
+        float alpha = (pin + tinyCross * 0.28) * vAlpha * smoothstep(0.52, 0.46, r);
+        gl_FragColor = vec4(vColor, alpha);
+      }
+    `,
+  });
+
+  const points = new THREE.Points(geometry, material);
+  points.frustumCulled = false;
+  return points;
+}
+
 function createBackdrop(config) {
   const material = new THREE.ShaderMaterial({
     depthWrite: false,
@@ -514,6 +609,7 @@ function readSettings() {
     low: {
       starCount: 2600,
       dustCount: 1600,
+      farStarCount: 1200,
       pixelRatio: 1,
       starScale: 0.82,
       sparkle: 0.75,
@@ -525,10 +621,12 @@ function readSettings() {
       rotationRate: 0,
       starSpin: 0.55,
       fadeSpeed: 0.7,
+      farBlinkSpeed: 0.8,
     },
     balanced: {
       starCount: 5600,
       dustCount: 3000,
+      farStarCount: 2400,
       pixelRatio: 1.1,
       starScale: 0.92,
       sparkle: 0.9,
@@ -540,10 +638,12 @@ function readSettings() {
       rotationRate: 0,
       starSpin: 0.8,
       fadeSpeed: 0.82,
+      farBlinkSpeed: 0.95,
     },
     high: {
       starCount: 9600,
       dustCount: 4600,
+      farStarCount: 3600,
       pixelRatio: 1.25,
       starScale: 1,
       sparkle: 1.05,
@@ -555,10 +655,12 @@ function readSettings() {
       rotationRate: 0,
       starSpin: 1.05,
       fadeSpeed: 0.96,
+      farBlinkSpeed: 1.05,
     },
     cinematic: {
       starCount: 15000,
       dustCount: 7200,
+      farStarCount: 5200,
       pixelRatio: 1.35,
       starScale: 1.08,
       sparkle: 1.32,
@@ -570,6 +672,7 @@ function readSettings() {
       rotationRate: 0,
       starSpin: 1.25,
       fadeSpeed: 1.04,
+      farBlinkSpeed: 1.15,
     },
   };
   const selected = qualityMap[qualityName] || qualityMap.cinematic;
@@ -589,9 +692,11 @@ function readSettings() {
     starScale: clamp(Number(params.get("starScale") ?? selected.starScale), 0.45, 2.4),
     starCount: selected.starCount,
     dustCount: selected.dustCount,
+    farStarCount: selected.farStarCount,
     rotationRate: clamp(Number(params.get("rotation") ?? selected.rotationRate), -4, 4),
     starSpin: clamp(Number(params.get("starSpin") ?? selected.starSpin), 0, 4),
     fadeSpeed: clamp(Number(params.get("fadeSpeed") ?? selected.fadeSpeed), 0, 3),
+    farBlinkSpeed: clamp(Number(params.get("farBlinkSpeed") ?? selected.farBlinkSpeed), 0, 4),
     cameraSway: clamp(Number(params.get("cameraSway") ?? selected.cameraSway), 0, 2),
     exposure: clamp(Number(params.get("exposure") ?? selected.exposure), 0.3, 2),
     postprocessing: readBoolean(params.get("postprocessing"), true),

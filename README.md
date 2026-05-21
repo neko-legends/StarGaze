@@ -66,6 +66,7 @@ Use URL parameters when adding it to a wallpaper app:
 - `?rotation=0` controls optional whole-field roll. It is off by default.
 - `?starSpin=1.8` increases the individual sparkle/flare rotation.
 - `?fadeSpeed=1.4` changes how quickly stars wink in and out across the layered field.
+- `?farBlinkSpeed=1.5` changes the static far-field white/blue twinkle rate.
 - `?bloom=0.3`, `?bloomRadius=0.45`, and `?bloomThreshold=0.7` tune the glow around bright stars.
 - `?postprocessing=false` disables bloom if you need a lighter render.
 - `?tunnelWidth=60` changes the spread of the star tunnel.
@@ -90,7 +91,7 @@ http://127.0.0.1:5173/?quality=cinematic&direction=forward&speed=1.25&sparkle=1.
 Extra dense and glowy:
 
 ```text
-http://127.0.0.1:5173/?quality=cinematic&density=1.5&starSpin=1.8&fadeSpeed=1.35&bloom=0.3&bloomThreshold=0.7&sparkle=1.6
+http://127.0.0.1:5173/?quality=cinematic&density=1.5&starSpin=1.8&fadeSpeed=1.35&farBlinkSpeed=1.4&bloom=0.3&bloomThreshold=0.7&sparkle=1.6
 ```
 
 For a mixed landscape/portrait monitor setup, configure the wallpaper host to span one web wallpaper across the full virtual desktop when available. Running separate instances per monitor will still look good, but the star positions will not be mathematically continuous across screen edges.
