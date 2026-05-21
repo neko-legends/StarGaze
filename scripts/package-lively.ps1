@@ -14,6 +14,15 @@ param(
   [ValidateRange(0.05, 4.0)]
   [double]$Speed = 1.0,
 
+  [ValidateRange(-4.0, 4.0)]
+  [double]$Rotation = 1.12,
+
+  [ValidateRange(0.0, 4.0)]
+  [double]$StarSpin = 1.25,
+
+  [ValidateRange(0.0, 2.2)]
+  [double]$Bloom = 0.34,
+
   [ValidateRange(0.5, 3.0)]
   [double]$PixelRatio = 1.35
 )
@@ -59,7 +68,7 @@ New-Item -ItemType Directory -Path $stageDir | Out-Null
 Copy-Item -Path (Join-Path $buildDir "*") -Destination $stageDir -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $root "LICENSE") -Destination $stageDir -Force
 
-$query = "quality=$Quality&fps=$Fps&theme=$Theme&direction=$Direction&speed=$Speed&pixelRatio=$PixelRatio"
+$query = "quality=$Quality&fps=$Fps&theme=$Theme&direction=$Direction&speed=$Speed&rotation=$Rotation&starSpin=$StarSpin&bloom=$Bloom&pixelRatio=$PixelRatio"
 $launcher = @"
 <!doctype html>
 <html lang="en">
