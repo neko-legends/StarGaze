@@ -586,12 +586,20 @@ function createBackdrop(config) {
 
       void main() {
         vec2 uv = vUv;
+        vec2 centered = uv - vec2(0.5);
         float vertical = smoothstep(0.0, 1.0, uv.y);
-        vec3 color = mix(uBottom, uTop, vertical);
-        float milky = exp(-pow((uv.y - 0.23) * 3.2, 2.0)) * (0.22 + noise(uv * 5.0 + uTime * 0.01) * 0.13);
-        float centerGlow = exp(-length((uv - vec2(0.48, 0.42)) * vec2(1.4, 2.2)) * 2.4) * 0.18;
-        color += uMid * (milky + centerGlow);
-        color += vec3(noise(uv * 180.0 + uTime * 0.02)) * 0.012;
+        vec3 color = mix(uBottom, uTop, vertical) * 0.62;
+
+        float core = exp(-dot(centered * vec2(1.45, 2.75), centered * vec2(1.45, 2.75)) * 5.2);
+        float bandY = centered.y + sin(centered.x * 4.4 + uTime * 0.006) * 0.035;
+        float band = exp(-bandY * bandY * 32.0) * exp(-centered.x * centered.x * 5.2);
+        float cloud = noise(uv * 5.4 + uTime * 0.01) * 0.09 + noise(uv * 12.0 - uTime * 0.008) * 0.035;
+        float centerHaze = (core * 0.16 + band * 0.1) * (0.76 + cloud);
+
+        float vignette = 1.0 - smoothstep(0.28, 0.68, length(centered * vec2(1.08, 1.0)));
+        color += uMid * centerHaze;
+        color *= 0.3 + vignette * 0.7;
+        color += vec3(noise(uv * 180.0 + uTime * 0.02)) * 0.006 * (0.45 + vignette);
         gl_FragColor = vec4(color, 1.0);
       }
     `,
