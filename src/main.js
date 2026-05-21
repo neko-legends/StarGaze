@@ -126,9 +126,17 @@ function resize() {
   camera.fov = camera.aspect > 2.2 ? 54 : camera.aspect < 0.72 ? 66 : 58;
   camera.updateProjectionMatrix();
 
+  const viewportScale = viewportPointScale(width, height);
+  starfield.material.uniforms.uViewportScale.value = viewportScale;
+  dustfield.material.uniforms.uViewportScale.value = viewportScale;
   starfield.material.uniforms.uAspect.value = camera.aspect;
   dustfield.material.uniforms.uAspect.value = camera.aspect;
   backdrop.scale.set(camera.aspect > 1 ? camera.aspect * 46 : 46, camera.aspect > 1 ? 46 : 46 / camera.aspect, 1);
+}
+
+function viewportPointScale(viewportWidth, viewportHeight) {
+  const areaScale = Math.sqrt((viewportWidth * viewportHeight) / (1280 * 900));
+  return clamp(areaScale, 0.9, 1.9);
 }
 
 function createRenderPipeline(config) {
@@ -226,6 +234,7 @@ function createStarfield(config) {
       uNear: { value: config.nearPlane },
       uDirection: { value: config.direction === "forward" ? -1 : 1 },
       uPixelRatio: { value: Math.min(config.pixelRatio, 3) },
+      uViewportScale: { value: 1 },
       uAspect: { value: 1 },
       uStretch: { value: config.direction === "forward" ? 1.35 : 0.78 },
     },
@@ -247,6 +256,7 @@ function createStarfield(config) {
       uniform float uNear;
       uniform float uDirection;
       uniform float uPixelRatio;
+      uniform float uViewportScale;
       uniform float uStretch;
 
       varying vec3 vColor;
@@ -270,13 +280,21 @@ function createStarfield(config) {
         float nearGlow = smoothstep(uDepth, uNear, distanceToCamera);
         float farFade = smoothstep(uDepth, uDepth * 0.52, distanceToCamera);
         float motionBoost = mix(0.78, uStretch, nearGlow);
-        float lifePhase = fract(aLifePhase + uTime * aLifeSpeed * 0.018);
-        float appear = smoothstep(0.01, 0.12, lifePhase);
-        float vanish = 1.0 - smoothstep(0.84, 0.99, lifePhase);
+        float lifePhase = fract(aLifePhase + uTime * aLifeSpeed * 0.08);
+        float appear = smoothstep(0.02, 0.14, lifePhase);
+        float vanish = 1.0 - smoothstep(0.5, 0.68, lifePhase);
+        float lifePulse = 0.58 + 0.42 * sin(lifePhase * 6.28318530718);
         float layerFlicker = 0.84 + 0.16 * sin(uTime * (0.42 + aLayer * 0.58) + aPhase * 31.0);
 
         gl_Position = projectionMatrix * mvPosition;
-        gl_PointSize = aSize * perspective * uPixelRatio * (0.78 + pulse * 0.52) * motionBoost;
+        gl_PointSize =
+          aSize *
+          perspective *
+          uPixelRatio *
+          uViewportScale *
+          (0.76 + pulse * 0.48) *
+          (0.86 + lifePulse * 0.22) *
+          motionBoost;
 
         vColor = color;
         vShape = aShape;
@@ -285,7 +303,7 @@ function createStarfield(config) {
         vDepthFade = clamp(farFade * (0.38 + nearGlow * 0.92), 0.0, 1.0);
         vMotion = nearGlow;
         vRotation = aRotation + uTime * aSpin + nearGlow * aSpin * 0.85;
-        vLife = appear * vanish * layerFlicker;
+        vLife = appear * vanish * layerFlicker * (0.72 + lifePulse * 0.36);
       }
     `,
     fragmentShader: `
@@ -382,6 +400,7 @@ function createDustfield(config) {
       uNear: { value: config.nearPlane * 1.8 },
       uDirection: { value: config.direction === "forward" ? -1 : 1 },
       uPixelRatio: { value: Math.min(config.pixelRatio, 3) },
+      uViewportScale: { value: 1 },
       uAspect: { value: 1 },
     },
     vertexShader: `
@@ -394,6 +413,7 @@ function createDustfield(config) {
       uniform float uNear;
       uniform float uDirection;
       uniform float uPixelRatio;
+      uniform float uViewportScale;
 
       varying vec3 vColor;
       varying float vAlpha;
@@ -406,7 +426,7 @@ function createDustfield(config) {
         float perspective = 44.0 / max(1.0, -mvPosition.z);
 
         gl_Position = projectionMatrix * mvPosition;
-        gl_PointSize = aSize * perspective * uPixelRatio;
+        gl_PointSize = aSize * perspective * uPixelRatio * uViewportScale;
 
         float nearGlow = smoothstep(uDepth, uNear, distanceToCamera);
         vColor = color;
@@ -492,7 +512,7 @@ function readSettings() {
   const qualityName = params.get("quality") || "cinematic";
   const qualityMap = {
     low: {
-      starCount: 1800,
+      starCount: 2600,
       dustCount: 1600,
       pixelRatio: 1,
       starScale: 0.82,
@@ -507,7 +527,7 @@ function readSettings() {
       fadeSpeed: 0.7,
     },
     balanced: {
-      starCount: 3800,
+      starCount: 5600,
       dustCount: 3000,
       pixelRatio: 1.1,
       starScale: 0.92,
@@ -522,7 +542,7 @@ function readSettings() {
       fadeSpeed: 0.82,
     },
     high: {
-      starCount: 6500,
+      starCount: 9600,
       dustCount: 4600,
       pixelRatio: 1.25,
       starScale: 1,
@@ -537,7 +557,7 @@ function readSettings() {
       fadeSpeed: 0.96,
     },
     cinematic: {
-      starCount: 10200,
+      starCount: 15000,
       dustCount: 7200,
       pixelRatio: 1.35,
       starScale: 1.08,
