@@ -82,10 +82,8 @@ function animate(timestamp = 0) {
     -32,
   );
 
-  starfield.rotation.z =
-    time * 0.018 * settings.rotationRate + Math.sin(time * 0.026) * 0.032 * settings.drift;
-  dustfield.rotation.z =
-    -time * 0.011 * settings.rotationRate - Math.sin(time * 0.021) * 0.018 * settings.drift;
+  starfield.rotation.z = time * 0.012 * settings.rotationRate;
+  dustfield.rotation.z = -time * 0.007 * settings.rotationRate;
 
   starfield.material.uniforms.uTime.value += delta * settings.speed;
   dustfield.material.uniforms.uTime.value += delta * settings.speed;
@@ -165,11 +163,16 @@ function createStarfield(config) {
   const flares = new Float32Array(count);
   const rotations = new Float32Array(count);
   const spins = new Float32Array(count);
+  const lifePhases = new Float32Array(count);
+  const lifeSpeeds = new Float32Array(count);
+  const layers = new Float32Array(count);
   const palette = config.palette;
 
   for (let i = 0; i < count; i += 1) {
-    const depthBias = Math.random() ** 0.58;
-    const spread = lerp(10, config.tunnelWidth, depthBias);
+    const layer = Math.floor(Math.random() * 5);
+    const layerNorm = layer / 4;
+    const depthBias = Math.random() ** lerp(0.82, 0.46, layerNorm);
+    const spread = lerp(8, config.tunnelWidth * lerp(0.68, 1.12, layerNorm), depthBias);
     const angle = Math.random() * Math.PI * 2;
     const radius = (0.12 + Math.random() ** 0.48) * spread;
     const x = Math.cos(angle) * radius * lerp(0.75, 1.34, Math.random());
@@ -186,12 +189,15 @@ function createStarfield(config) {
     colors[i * 3 + 2] = color.b * (rare ? 1.65 : bright ? 1.34 : 1);
     sizes[i] = (rare ? lerp(9, 18, Math.random()) : lerp(0.9, 5.4, Math.random() ** 2.35)) * config.starScale;
     phases[i] = Math.random();
-    speeds[i] = lerp(0.12, 0.82, Math.random() ** 1.35);
+    speeds[i] = lerp(0.07, 0.66, Math.random() ** 1.35) * lerp(0.7, 1.28, layerNorm);
     shapes[i] = rare ? Math.floor(2 + Math.random() * 3) : Math.floor(Math.random() * 3);
     twinkles[i] = lerp(0.45, 2.8, Math.random()) * config.sparkle;
     flares[i] = rare ? lerp(0.9, 1.7, Math.random()) : lerp(0.2, 0.82, Math.random());
     rotations[i] = Math.random() * Math.PI * 2;
     spins[i] = (Math.random() > 0.5 ? 1 : -1) * lerp(0.18, 1.45, Math.random()) * config.starSpin;
+    lifePhases[i] = Math.random();
+    lifeSpeeds[i] = lerp(0.22, 1.15, Math.random() ** 1.4) * config.fadeSpeed;
+    layers[i] = layerNorm;
   }
 
   const geometry = new THREE.BufferGeometry();
@@ -205,6 +211,9 @@ function createStarfield(config) {
   geometry.setAttribute("aFlare", new THREE.BufferAttribute(flares, 1));
   geometry.setAttribute("aRotation", new THREE.BufferAttribute(rotations, 1));
   geometry.setAttribute("aSpin", new THREE.BufferAttribute(spins, 1));
+  geometry.setAttribute("aLifePhase", new THREE.BufferAttribute(lifePhases, 1));
+  geometry.setAttribute("aLifeSpeed", new THREE.BufferAttribute(lifeSpeeds, 1));
+  geometry.setAttribute("aLayer", new THREE.BufferAttribute(layers, 1));
 
   const material = new THREE.ShaderMaterial({
     transparent: true,
@@ -229,6 +238,9 @@ function createStarfield(config) {
       attribute float aFlare;
       attribute float aRotation;
       attribute float aSpin;
+      attribute float aLifePhase;
+      attribute float aLifeSpeed;
+      attribute float aLayer;
 
       uniform float uTime;
       uniform float uDepth;
@@ -244,11 +256,13 @@ function createStarfield(config) {
       varying float vDepthFade;
       varying float vMotion;
       varying float vRotation;
+      varying float vLife;
 
       void main() {
-        float phase = fract(aPhase + uTime * aSpeed * 0.032 * uDirection);
+        float phase = fract(aPhase + uTime * aSpeed * 0.018 * uDirection);
         float distanceToCamera = mix(uNear, uDepth, phase);
-        vec3 transformed = vec3(position.xy, -distanceToCamera);
+        float layerParallax = mix(0.94, 1.08, aLayer);
+        vec3 transformed = vec3(position.xy * layerParallax, -distanceToCamera);
         vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.0);
 
         float perspective = 58.0 / max(1.0, -mvPosition.z);
@@ -256,6 +270,10 @@ function createStarfield(config) {
         float nearGlow = smoothstep(uDepth, uNear, distanceToCamera);
         float farFade = smoothstep(uDepth, uDepth * 0.52, distanceToCamera);
         float motionBoost = mix(0.78, uStretch, nearGlow);
+        float lifePhase = fract(aLifePhase + uTime * aLifeSpeed * 0.018);
+        float appear = smoothstep(0.01, 0.12, lifePhase);
+        float vanish = 1.0 - smoothstep(0.84, 0.99, lifePhase);
+        float layerFlicker = 0.84 + 0.16 * sin(uTime * (0.42 + aLayer * 0.58) + aPhase * 31.0);
 
         gl_Position = projectionMatrix * mvPosition;
         gl_PointSize = aSize * perspective * uPixelRatio * (0.78 + pulse * 0.52) * motionBoost;
@@ -267,6 +285,7 @@ function createStarfield(config) {
         vDepthFade = clamp(farFade * (0.38 + nearGlow * 0.92), 0.0, 1.0);
         vMotion = nearGlow;
         vRotation = aRotation + uTime * aSpin + nearGlow * aSpin * 0.85;
+        vLife = appear * vanish * layerFlicker;
       }
     `,
     fragmentShader: `
@@ -277,6 +296,7 @@ function createStarfield(config) {
       varying float vDepthFade;
       varying float vMotion;
       varying float vRotation;
+      varying float vLife;
 
       float lineGlow(float d, float width) {
         return exp(-d * d / max(0.0001, width));
@@ -288,8 +308,8 @@ function createStarfield(config) {
         float s = sin(vRotation);
         uv = mat2(c, -s, s, c) * uv;
         float r = length(uv);
-        float core = exp(-r * r * 74.0);
-        float halo = exp(-r * r * 10.0) * 0.58;
+        float core = exp(-r * r * 130.0);
+        float pin = exp(-r * r * 42.0) * 0.16;
 
         float cross = lineGlow(abs(uv.x), 0.0016) * smoothstep(0.5, 0.035, abs(uv.y));
         cross += lineGlow(abs(uv.y), 0.0016) * smoothstep(0.5, 0.035, abs(uv.x));
@@ -299,15 +319,16 @@ function createStarfield(config) {
         diag += lineGlow(abs(diagonal.y), 0.0015) * smoothstep(0.45, 0.04, abs(diagonal.x));
 
         float diamond = smoothstep(0.5, 0.04, abs(uv.x) + abs(uv.y));
-        float roundStar = core + halo;
-        float sparkle = core + halo * 0.92 + cross * vFlare * 1.16 + diag * vFlare * 0.58;
-        float gem = core * 1.2 + diamond * 0.65 + cross * 0.38;
-        float longFlare = core + halo + cross * 1.82 + diag * 0.48;
+        float shapedBleed = max(cross * 0.46, diag * 0.26) + diamond * 0.11;
+        float roundStar = core + pin;
+        float sparkle = core + shapedBleed + cross * vFlare * 1.02 + diag * vFlare * 0.54;
+        float gem = core * 1.18 + diamond * 0.42 + cross * 0.3;
+        float longFlare = core + shapedBleed + cross * 1.62 + diag * 0.44;
 
         float shapeA = mix(roundStar, sparkle, step(0.5, vShape));
         float shapeB = mix(gem, longFlare, step(3.5, vShape));
         float alpha = mix(shapeA, shapeB, step(2.5, vShape));
-        alpha *= vDepthFade * (0.58 + vTwinkle * 0.68);
+        alpha *= vDepthFade * vLife * (0.58 + vTwinkle * 0.68);
         alpha *= smoothstep(0.52, 0.48, r);
 
         vec3 color = vColor * (0.92 + vTwinkle * 0.82 + vMotion * 0.85);
@@ -471,60 +492,64 @@ function readSettings() {
   const qualityName = params.get("quality") || "cinematic";
   const qualityMap = {
     low: {
-      starCount: 1400,
-      dustCount: 1300,
+      starCount: 1800,
+      dustCount: 1600,
       pixelRatio: 1,
       starScale: 0.82,
       sparkle: 0.75,
       exposure: 0.82,
       cameraSway: 0.25,
-      bloomStrength: 0.12,
-      bloomRadius: 0.28,
-      bloomThreshold: 0.78,
-      rotationRate: 0.45,
+      bloomStrength: 0.06,
+      bloomRadius: 0.22,
+      bloomThreshold: 0.84,
+      rotationRate: 0,
       starSpin: 0.55,
+      fadeSpeed: 0.7,
     },
     balanced: {
-      starCount: 2800,
-      dustCount: 2400,
+      starCount: 3800,
+      dustCount: 3000,
       pixelRatio: 1.1,
       starScale: 0.92,
       sparkle: 0.9,
       exposure: 0.9,
       cameraSway: 0.5,
-      bloomStrength: 0.22,
-      bloomRadius: 0.36,
-      bloomThreshold: 0.72,
-      rotationRate: 0.7,
+      bloomStrength: 0.1,
+      bloomRadius: 0.28,
+      bloomThreshold: 0.8,
+      rotationRate: 0,
       starSpin: 0.8,
+      fadeSpeed: 0.82,
     },
     high: {
-      starCount: 4600,
-      dustCount: 3600,
+      starCount: 6500,
+      dustCount: 4600,
       pixelRatio: 1.25,
       starScale: 1,
       sparkle: 1.05,
       exposure: 0.98,
       cameraSway: 0.7,
-      bloomStrength: 0.32,
-      bloomRadius: 0.42,
-      bloomThreshold: 0.66,
-      rotationRate: 0.95,
+      bloomStrength: 0.14,
+      bloomRadius: 0.34,
+      bloomThreshold: 0.76,
+      rotationRate: 0,
       starSpin: 1.05,
+      fadeSpeed: 0.96,
     },
     cinematic: {
-      starCount: 7200,
-      dustCount: 5200,
+      starCount: 10200,
+      dustCount: 7200,
       pixelRatio: 1.35,
       starScale: 1.08,
       sparkle: 1.32,
       exposure: 1.14,
       cameraSway: 0.85,
-      bloomStrength: 0.34,
-      bloomRadius: 0.42,
-      bloomThreshold: 0.68,
-      rotationRate: 1.12,
+      bloomStrength: 0.18,
+      bloomRadius: 0.36,
+      bloomThreshold: 0.74,
+      rotationRate: 0,
       starSpin: 1.25,
+      fadeSpeed: 1.04,
     },
   };
   const selected = qualityMap[qualityName] || qualityMap.cinematic;
@@ -535,7 +560,7 @@ function readSettings() {
     quality: qualityMap[qualityName] ? qualityName : "cinematic",
     direction: readDirection(params.get("direction") || params.get("zoom") || "away"),
     speed: clamp(Number(params.get("speed") ?? 1), 0.05, 4),
-    density: clamp(Number(params.get("density") ?? 1.18), 0.25, 3.5),
+    density: clamp(Number(params.get("density") ?? 1.24), 0.25, 3.5),
     depth: clamp(Number(params.get("depth") ?? 78), 28, 140),
     nearPlane: clamp(Number(params.get("near") ?? 2.6), 1.2, 10),
     tunnelWidth: clamp(Number(params.get("tunnelWidth") ?? 54), 18, 100),
@@ -546,6 +571,7 @@ function readSettings() {
     dustCount: selected.dustCount,
     rotationRate: clamp(Number(params.get("rotation") ?? selected.rotationRate), -4, 4),
     starSpin: clamp(Number(params.get("starSpin") ?? selected.starSpin), 0, 4),
+    fadeSpeed: clamp(Number(params.get("fadeSpeed") ?? selected.fadeSpeed), 0, 3),
     cameraSway: clamp(Number(params.get("cameraSway") ?? selected.cameraSway), 0, 2),
     exposure: clamp(Number(params.get("exposure") ?? selected.exposure), 0.3, 2),
     postprocessing: readBoolean(params.get("postprocessing"), true),

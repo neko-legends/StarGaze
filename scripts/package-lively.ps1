@@ -15,13 +15,13 @@ param(
   [double]$Speed = 1.0,
 
   [ValidateRange(-4.0, 4.0)]
-  [double]$Rotation = 1.12,
+  [double]$Rotation = 0.0,
 
   [ValidateRange(0.0, 4.0)]
   [double]$StarSpin = 1.25,
 
   [ValidateRange(0.0, 2.2)]
-  [double]$Bloom = 0.34,
+  [double]$Bloom = 0.18,
 
   [ValidateRange(0.5, 3.0)]
   [double]$PixelRatio = 1.35
