@@ -1,0 +1,96 @@
+# StarGaze
+
+StarGaze is a public motion-art wallpaper by Neko Legends (`@softpoo` on X): a deep, glittering field of colored stars, pinpoints, diamonds, and flare-shaped sparkles drifting through space.
+
+The default motion is `direction=away`, which makes the stars recede into the distance. Use `direction=forward` for the stronger tunnel effect where stars rush toward the viewer and bloom outward. The project is built with Three.js and follows the same local browser, Lively Wallpaper, and Windows screensaver setup as PurplePlanet.
+
+## Run locally
+
+```powershell
+npm install
+npm run dev
+```
+
+Then open the local URL printed by Vite.
+
+## Use as a live wallpaper
+
+Double-click this to build the static wallpaper bundle and Lively package:
+
+```text
+Build-LiveWallpaper.bat
+```
+
+Or run the PowerShell script directly:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-lively.ps1
+```
+
+Generated outputs:
+
+- `live-wallpaper/` is the self-contained static web wallpaper.
+- `packages/StarGaze.lively` is the Lively package.
+- `packages/StarGaze.zip` is the same package as a normal zip.
+
+For Lively Wallpaper, drag `packages/StarGaze.lively` or `packages/StarGaze.zip` into the Lively window. For Wallpaper Engine, create a web wallpaper from `live-wallpaper/index.html`.
+
+## Use as a Windows screensaver
+
+Double-click this from the repo root:
+
+```text
+Install-Screensaver.bat
+```
+
+The installer builds/uses `live-wallpaper/`, updates `StarGaze\config.json`, creates `StarGaze.scr`, registers it for the current Windows user, and opens Windows Screen Saver Settings. It does not need admin rights.
+
+Optional timeout:
+
+```powershell
+.\Install-Screensaver.bat -TimeoutSeconds 600
+```
+
+## Wallpaper tuning
+
+Use URL parameters when adding it to a wallpaper app:
+
+- `?quality=low`, `?quality=balanced`, `?quality=high`, or `?quality=cinematic` controls star count, sparkle, pixel ratio, and exposure.
+- `?direction=away` makes the field recede into depth. This is the default.
+- `?direction=forward` makes the stars rush toward the viewer.
+- `?fps=60` is the default cap. Use `?fps=30` or `?fps=24` for lower GPU use, or `?fps=0` to render every display refresh.
+- `?speed=0.7` slows the depth drift. Higher values move faster.
+- `?density=1.4` increases the number of stars and dust motes.
+- `?sparkle=1.5` increases star twinkle and flare intensity.
+- `?starScale=1.25` makes stars larger.
+- `?tunnelWidth=60` changes the spread of the star tunnel.
+- `?pixelRatio=1.35` is the cinematic default. Lower it toward `1` for less GPU load.
+- `?cameraSway=0` disables the slow camera drift.
+- `?theme=stargaze`, `?theme=prism`, `?theme=frost`, `?theme=jewel`, or `?theme=ember` selects a built-in palette.
+- `?palette=ffffff,8fc7ff,2758ff,8c3dff,ff41df,ff4b32,ffd34f` provides a custom palette.
+- `?title=false` hides the small title.
+
+Example:
+
+```text
+http://127.0.0.1:5173/?quality=cinematic&fps=60&direction=away&speed=1&pixelRatio=1.35&theme=stargaze
+```
+
+Forward rush variant:
+
+```text
+http://127.0.0.1:5173/?quality=cinematic&direction=forward&speed=1.25&sparkle=1.4
+```
+
+For a mixed landscape/portrait monitor setup, configure the wallpaper host to span one web wallpaper across the full virtual desktop when available. Running separate instances per monitor will still look good, but the star positions will not be mathematically continuous across screen edges.
+
+## License
+
+StarGaze is MIT licensed.
+
+## Credits
+
+Created by Neko Legends (`@softpoo`), with AI development assistance from Eva.
+
+- Website: https://nekolegends.com
+- X/Twitter: https://x.com/softpoo

@@ -1,0 +1,9 @@
+﻿{
+    "wallpaperPath":  "..\\live-wallpaper",
+    "layout":  "span",
+    "queryString":  "quality=cinematic\u0026fps=60\u0026pixelRatio=1.35\u0026direction=away",
+    "browserExecutable":  null,
+    "attachToDesktop":  true,
+    "restartOnDisplayChange":  true,
+    "startupTimeoutMs":  10000
+}

@@ -1,0 +1,21 @@
+{
+  "name": "stargaze",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build --base ./ --outDir live-wallpaper --emptyOutDir=true",
+    "package:lively": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-lively.ps1",
+    "preview": "vite preview --host 127.0.0.1",
+    "verify": "node scripts/verify.mjs"
+  },
+  "dependencies": {
+    "postprocessing": "6.36.7",
+    "three": "^0.164.1"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.59.1",
+    "vite": "^8.0.13"
+  }
+}
