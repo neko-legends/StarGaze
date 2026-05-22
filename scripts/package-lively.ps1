@@ -42,6 +42,7 @@ $packagesDir = Join-Path $root "packages"
 $stageDir = Join-Path $packagesDir "_StarGaze"
 $zipPath = Join-Path $packagesDir "StarGaze.zip"
 $legacyLivelyPath = Join-Path $packagesDir "StarGaze.lively"
+$thumbnailSource = Join-Path $root "docs\stargaze-preview.png"
 
 Set-Location $root
 
@@ -73,6 +74,7 @@ if (Test-Path -LiteralPath $stageDir) {
 New-Item -ItemType Directory -Path $stageDir | Out-Null
 Copy-Item -Path (Join-Path $buildDir "*") -Destination $stageDir -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $root "LICENSE") -Destination $stageDir -Force
+Copy-Item -LiteralPath $thumbnailSource -Destination (Join-Path $stageDir "thumbnail.png") -Force
 
 $query = "quality=$Quality&fps=$Fps&theme=$Theme&direction=$Direction&speed=$Speed&rotation=$Rotation&starSpin=$StarSpin&fadeSpeed=$FadeSpeed&farBlinkSpeed=$FarBlinkSpeed&bloom=$Bloom&pixelRatio=$PixelRatio"
 $launcher = @"
@@ -97,6 +99,8 @@ Set-Content -LiteralPath (Join-Path $stageDir "wallpaper.html") -Value $launcher
 $metadata = [ordered]@{
   AppVersion = "2.2.1.0"
   Title = "StarGaze"
+  Thumbnail = "thumbnail.png"
+  Preview = "thumbnail.png"
   Desc = "Sparkly configurable Three.js starfield live wallpaper."
   Author = "Neko Legends (@softpoo)"
   License = "MIT"
