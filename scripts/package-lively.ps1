@@ -42,7 +42,7 @@ $packagesDir = Join-Path $root "packages"
 $stageDir = Join-Path $packagesDir "_StarGaze"
 $zipPath = Join-Path $packagesDir "StarGaze.zip"
 $legacyLivelyPath = Join-Path $packagesDir "StarGaze.lively"
-$thumbnailSource = Join-Path $root "docs\stargaze-preview.png"
+$thumbnailSource = Join-Path $root "docs\stargaze-thumbnail.png"
 
 Set-Location $root
 
@@ -103,7 +103,7 @@ $metadata = [ordered]@{
   Preview = "thumbnail.png"
   Desc = "Sparkly configurable Three.js starfield live wallpaper."
   Author = "Neko Legends (@softpoo)"
-  License = "MIT"
+  License = "MIT source; CC BY 4.0 music"
   Contact = "https://nekolegends.com"
   Type = 1
   FileName = "wallpaper.html"

@@ -4,6 +4,8 @@ StarGaze is a public motion-art wallpaper by Neko Legends (`@softpoo` on X): a d
 
 The default motion is `direction=away`, which makes the stars recede into the distance. Use `direction=forward` for the stronger tunnel effect where stars rush toward the viewer and bloom outward. The project is built with Three.js and follows the same local browser, Lively Wallpaper, and Windows screensaver setup as PurplePlanet.
 
+![StarGaze preview](docs/stargaze-preview.png)
+
 ## Run locally
 
 ```powershell
@@ -101,9 +103,13 @@ http://127.0.0.1:5173/?quality=cinematic&density=1.5&starSpin=1.8&fadeSpeed=1.35
 
 For a mixed landscape/portrait monitor setup, configure the wallpaper host to span one web wallpaper across the full virtual desktop when available. Running separate instances per monitor will still look good, but the star positions will not be mathematically continuous across screen edges.
 
+## Music Assets
+
+Bundled music lives in `public/` so Vite copies it into `live-wallpaper/` and the Lively package. The current track is `public/Star Gaze.mp3`. The source code can remain open source while music is documented separately in `public/ASSET-LICENSE.md`.
+
 ## License
 
-StarGaze is MIT licensed.
+StarGaze source code is MIT licensed. The bundled music has an additional asset note in `public/ASSET-LICENSE.md`.
 
 ## Credits
 
