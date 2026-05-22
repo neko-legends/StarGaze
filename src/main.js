@@ -7,6 +7,7 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 
 const canvas = document.querySelector("#wallpaper");
 const title = document.querySelector(".wallpaper-title");
+const music = setupMusic();
 const settings = readSettings();
 
 if (!settings.showTitle && title) {
@@ -142,6 +143,73 @@ function resize() {
 function viewportPointScale(viewportWidth, viewportHeight) {
   const areaScale = Math.sqrt((viewportWidth * viewportHeight) / (1280 * 900));
   return clamp(areaScale, 0.9, 1.9);
+}
+
+function setupMusic() {
+  const params = new URLSearchParams(window.location.search);
+  let wantsMusic = readBoolean(params.get("music"), true);
+  const button = document.querySelector(".music-toggle");
+
+  if (!button) {
+    return null;
+  }
+
+  const audio = new Audio(new URL("./Star%20Gaze.mp3", window.location.href).href);
+  audio.loop = true;
+  audio.preload = "auto";
+  audio.volume = clamp(Number(params.get("musicVolume") ?? 0.38), 0, 1);
+
+  const updateButton = () => {
+    const playing = wantsMusic && !audio.paused;
+    button.hidden = false;
+    button.classList.toggle("is-on", playing);
+    button.classList.toggle("is-off", !wantsMusic);
+    button.classList.toggle("is-pending", wantsMusic && audio.paused);
+    button.textContent = wantsMusic ? "♪" : "×";
+    button.setAttribute(
+      "aria-label",
+      playing ? "Turn music off" : wantsMusic ? "Start music" : "Turn music on",
+    );
+  };
+
+  const tryPlay = async () => {
+    if (!wantsMusic) {
+      updateButton();
+      return;
+    }
+
+    try {
+      await audio.play();
+    } catch {
+      // Autoplay can be blocked; the visible toggle lets the next user click start it.
+    }
+    updateButton();
+  };
+
+  button.addEventListener("click", () => {
+    if (wantsMusic && !audio.paused) {
+      wantsMusic = false;
+      audio.pause();
+      updateButton();
+      return;
+    }
+
+    wantsMusic = true;
+    void tryPlay();
+  });
+  audio.addEventListener("play", updateButton);
+  audio.addEventListener("pause", updateButton);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && wantsMusic && audio.paused) {
+      void tryPlay();
+    }
+  });
+
+  updateButton();
+  void tryPlay();
+
+  return audio;
 }
 
 function createRenderPipeline(config) {

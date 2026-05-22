@@ -97,6 +97,7 @@ Use URL parameters when adding it to a wallpaper app:
 - `?postprocessing=false` disables bloom if you need a lighter render.
 - `?tunnelWidth=60` changes the spread of the star tunnel.
 - `?pixelRatio=1.35` is the cinematic default. Lower it toward `1` for less GPU load.
+- `?music=true` plays the bundled track by default. Use `?music=false` to disable it or `?musicVolume=0.25` to lower the volume.
 - `?cameraSway=0` disables the slow camera drift.
 - `?theme=stargaze`, `?theme=prism`, `?theme=frost`, `?theme=jewel`, or `?theme=ember` selects a built-in palette.
 - `?palette=ffffff,8fc7ff,2758ff,8c3dff,ff41df,ff4b32,ffd34f` provides a custom palette.
