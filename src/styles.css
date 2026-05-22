@@ -10,7 +10,6 @@ body {
   overflow: hidden;
   background: #01030b;
   color: #f7fbff;
-  cursor: none;
 }
 
 #wallpaper {
@@ -18,7 +17,6 @@ body {
   width: 100vw;
   height: 100vh;
   background: #01030b;
-  cursor: none;
   outline: none;
 }
 
