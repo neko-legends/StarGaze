@@ -6,6 +6,8 @@ The default motion is `direction=away`, which makes the stars recede into the di
 
 ![StarGaze preview](docs/stargaze-preview.png)
 
+![StarGaze animation demo](anim.gif)
+
 ## Run locally
 
 ```powershell
