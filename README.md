@@ -8,6 +8,10 @@ The default motion is `direction=away`, which makes the stars recede into the di
 
 ![StarGaze animation demo](anim.gif)
 
+![StarGaze running across three displays](screenshot.webp)
+
+Performance reference: about 4% GPU usage across three displays on an RTX 5090, spanning one 4K display and two 2K displays. Older GPUs are less optimized and may use more GPU.
+
 ## Run locally
 
 ```powershell
