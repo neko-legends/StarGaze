@@ -15,6 +15,8 @@ Then open the local URL printed by Vite.
 
 ## Use as a live wallpaper
 
+For Windows desktop live wallpaper use, Lively Wallpaper is the recommended host. Windows itself does not provide a native animated web wallpaper system, and the included `.scr` host is for screensaver mode rather than always-on desktop wallpaper mode.
+
 Double-click this to build the static wallpaper bundle and Lively package:
 
 ```text
@@ -33,9 +35,13 @@ Generated outputs:
 - `packages/StarGaze.lively` is the Lively package.
 - `packages/StarGaze.zip` is the same package as a normal zip.
 
-For Lively Wallpaper, drag `packages/StarGaze.lively` or `packages/StarGaze.zip` into the Lively window. For Wallpaper Engine, create a web wallpaper from `live-wallpaper/index.html`.
+For Lively Wallpaper, drag `packages/StarGaze.lively` or `packages/StarGaze.zip` into the Lively window, select Star Gaze, then apply it to the desired monitor or span layout. Enable Start with Windows inside Lively if you want it to run on boot.
+
+For Wallpaper Engine, create a web wallpaper from `live-wallpaper/index.html`.
 
 ## Use as a Windows screensaver
+
+This is separate from live wallpaper mode. Use this only if you want Star Gaze as the Windows screensaver that appears after idle time.
 
 Double-click this from the repo root:
 
