@@ -187,7 +187,7 @@ function createStarfield(config) {
     const depthBias = Math.random() ** lerp(0.82, 0.46, layerNorm);
     const spread = lerp(8, config.tunnelWidth * lerp(0.68, 1.12, layerNorm), depthBias);
     const angle = Math.random() * Math.PI * 2;
-    const radius = (0.12 + Math.random() ** 0.48) * spread;
+    const radius = Math.sqrt(Math.random()) * spread;
     const x = Math.cos(angle) * radius * lerp(0.75, 1.34, Math.random());
     const y = Math.sin(angle) * radius * lerp(0.68, 1.22, Math.random());
     const color = samplePalette(palette, Math.random());
@@ -615,9 +615,9 @@ function readSettings() {
   const qualityName = params.get("quality") || "cinematic";
   const qualityMap = {
     low: {
-      starCount: 2600,
+      starCount: 3400,
       dustCount: 1600,
-      farStarCount: 1200,
+      farStarCount: 1600,
       pixelRatio: 1,
       starScale: 0.82,
       sparkle: 0.75,
@@ -632,9 +632,9 @@ function readSettings() {
       farBlinkSpeed: 0.8,
     },
     balanced: {
-      starCount: 5600,
+      starCount: 7600,
       dustCount: 3000,
-      farStarCount: 2400,
+      farStarCount: 3200,
       pixelRatio: 1.1,
       starScale: 0.92,
       sparkle: 0.9,
@@ -649,9 +649,9 @@ function readSettings() {
       farBlinkSpeed: 0.95,
     },
     high: {
-      starCount: 9600,
+      starCount: 13200,
       dustCount: 4600,
-      farStarCount: 3600,
+      farStarCount: 4800,
       pixelRatio: 1.25,
       starScale: 1,
       sparkle: 1.05,
@@ -666,9 +666,9 @@ function readSettings() {
       farBlinkSpeed: 1.05,
     },
     cinematic: {
-      starCount: 15000,
+      starCount: 22000,
       dustCount: 7200,
-      farStarCount: 5200,
+      farStarCount: 7200,
       pixelRatio: 1.35,
       starScale: 1.08,
       sparkle: 1.32,
