@@ -36,7 +36,20 @@ Generated outputs:
 - `live-wallpaper/` is the self-contained static web wallpaper.
 - `packages/StarGaze.zip` is the Lively package.
 
-For Lively Wallpaper, drag `packages/StarGaze.zip` into the Lively window, select Star Gaze, then apply it to the desired monitor or span layout. Enable Start with Windows inside Lively if you want it to run on boot. Current Lively builds import wallpaper packages through the `.zip` extension; a `.lively` copy may be rejected as "file not supported."
+### Install in Lively Wallpaper
+
+1. Build or download `StarGaze.zip`.
+2. Open Lively Wallpaper.
+3. Drag `StarGaze.zip` into the Lively window.
+4. Select StarGaze in the Lively library.
+5. Apply it to the desired monitor, or choose a span layout for one continuous wallpaper across multiple displays.
+6. Enable Start with Windows inside Lively if you want it to run on boot.
+
+Current Lively builds import wallpaper packages through the `.zip` extension. A `.lively` copy may be rejected as "file not supported."
+
+### GitHub Release
+
+Yes, make a GitHub release and attach `packages/StarGaze.zip` as the release asset. That gives users one file to download and drag into Lively. Do not rely on GitHub's automatic source-code zip for Lively installation; it is the repo source archive, not the packaged wallpaper.
 
 For Wallpaper Engine, create a web wallpaper from `live-wallpaper/index.html`.
 
