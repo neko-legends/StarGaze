@@ -684,7 +684,7 @@ function readSettings() {
     },
   };
   const selected = qualityMap[qualityName] || qualityMap.cinematic;
-  const fps = clamp(Number(params.get("fps") ?? 60), 0, 240);
+  const fps = clamp(Number(params.get("fps") ?? 30), 0, 240);
   const themeName = params.get("theme") || "stargaze";
 
   return {

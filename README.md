@@ -63,7 +63,7 @@ Use URL parameters when adding it to a wallpaper app:
 - `?quality=low`, `?quality=balanced`, `?quality=high`, or `?quality=cinematic` controls star count, sparkle, pixel ratio, and exposure.
 - `?direction=away` makes the field recede into depth. This is the default.
 - `?direction=forward` makes the stars rush toward the viewer.
-- `?fps=60` is the default cap. Use `?fps=30` or `?fps=24` for lower GPU use, or `?fps=0` to render every display refresh.
+- `?fps=30` is the default cap. Use `?fps=24` for lower GPU use, `?fps=60` for smoother motion, or `?fps=0` to render every display refresh.
 - `?speed=0.7` slows the depth drift. Higher values move faster.
 - `?density=1.4` increases the number of stars and dust motes.
 - `?sparkle=1.5` increases star twinkle and flare intensity.
@@ -84,7 +84,7 @@ Use URL parameters when adding it to a wallpaper app:
 Example:
 
 ```text
-http://127.0.0.1:5173/?quality=cinematic&fps=60&direction=away&speed=1&pixelRatio=1.35&theme=stargaze
+http://127.0.0.1:5173/?quality=cinematic&fps=30&direction=away&speed=1&pixelRatio=1.35&theme=stargaze
 ```
 
 Forward rush variant:
