@@ -32,10 +32,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-lively.ps1
 Generated outputs:
 
 - `live-wallpaper/` is the self-contained static web wallpaper.
-- `packages/StarGaze.lively` is the Lively package.
-- `packages/StarGaze.zip` is the same package as a normal zip.
+- `packages/StarGaze.zip` is the Lively package.
 
-For Lively Wallpaper, drag `packages/StarGaze.lively` or `packages/StarGaze.zip` into the Lively window, select Star Gaze, then apply it to the desired monitor or span layout. Enable Start with Windows inside Lively if you want it to run on boot.
+For Lively Wallpaper, drag `packages/StarGaze.zip` into the Lively window, select Star Gaze, then apply it to the desired monitor or span layout. Enable Start with Windows inside Lively if you want it to run on boot. Current Lively builds import wallpaper packages through the `.zip` extension; a `.lively` copy may be rejected as "file not supported."
 
 For Wallpaper Engine, create a web wallpaper from `live-wallpaper/index.html`.
 
