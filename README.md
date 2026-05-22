@@ -4,11 +4,9 @@ StarGaze is a public motion-art wallpaper by Neko Legends (`@softpoo` on X): a d
 
 The default motion is `direction=away`, which makes the stars recede into the distance. Use `direction=forward` for the stronger tunnel effect where stars rush toward the viewer and bloom outward. The project is built with Three.js and follows the same local browser, Lively Wallpaper, and Windows screensaver setup as PurplePlanet.
 
-![StarGaze preview](docs/stargaze-preview.png)
+<img src="anim.gif" alt="StarGaze animation demo" width="426" height="240">
 
-![StarGaze animation demo](anim.gif)
-
-![StarGaze running across three displays](screenshot.webp)
+<img src="screenshot.webp" alt="StarGaze running across three displays" width="728" height="342">
 
 Performance reference: about 4% GPU usage across three displays on an RTX 5090, spanning one 4K display and two 2K displays. Older GPUs are less optimized and may use more GPU.
 
