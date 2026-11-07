@@ -3,6 +3,8 @@ node_modules/
 
 # Vite/build output
 dist/
+build/
+release/
 live-wallpaper/
 verification-build/
 
@@ -13,6 +15,12 @@ verification-build/
 # Generated wallpaper packages
 packages/
 *.lively
+*.exe
+*.msi
+*.dmg
+*.zip
+*.7z
+*.tar.gz
 
 # Render verification screenshots and summaries
 verification/

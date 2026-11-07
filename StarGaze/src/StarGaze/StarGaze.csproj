@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>StarGaze</AssemblyName>
     <RootNamespace>StarGaze</RootNamespace>
+    <ApplicationIcon>Assets\StarGaze.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -15,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\StarGaze.ico" />
     <None Include="..\..\config.json" Link="config.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

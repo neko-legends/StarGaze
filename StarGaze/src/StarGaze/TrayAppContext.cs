@@ -18,7 +18,7 @@ internal sealed class TrayAppContext : ApplicationContext
 
         notifyIcon = new NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath) ?? SystemIcons.Application,
             Visible = true,
             Text = "StarGaze",
             ContextMenuStrip = BuildMenu()
